@@ -1,0 +1,9 @@
+# Ignore everything by default
+*
+
+# Allow scripts and SQL files
+!*.py
+!*.sql
+
+# Allow the .gitignore file itself
+!.gitignore
