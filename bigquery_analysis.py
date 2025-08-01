@@ -10,7 +10,7 @@ today_str = datetime.today().strftime('%Y-%m-%d')
 max_gap_minutes = 20
 
 # Load and prep
-df = pd.read_feather('data/bigquery.feather')
+df = pd.read_feather('C:\\Users\\Graphicsland\\Spyder\\sharedData\\bigquery_events.feather')
 df['event_timestamp'] = pd.to_datetime(df['event_timestamp'], unit='us')
 df['param_engagement_time_sec'] = df['param_engagement_time_msec'] / 1000
 df = df.sort_values(by=['param_ga_session_id', 'event_timestamp'])
@@ -179,8 +179,23 @@ merged['clicks_from_path_to_first_reorder'] = merged.apply(count_path_clicks, ax
 merged.rename(columns={'param_transaction_id': 'OrderNumber'}, inplace=True)
 
 # Join CustomerId into merged via OrderNumber
-df_order = pd.read_feather('data/raw_order_df.feather')
+df_order = pd.read_feather("C://Users//Graphicsland//Spyder//sharedData//raw_order_df.feather")
+
+customer_df = pd.read_feather("C://Users//Graphicsland//Spyder//sharedData//raw_customer_df.feather")[['CustomerId', 'Email']]
+    
+df_order = df_order.merge(customer_df, on = 'CustomerId', how = 'left')
+
+# ---------------------------------------------------
+# Use Email instead of CustomerId, but rename it back
+# to "CustomerId" for compatibility with Power BI.
+# ---------------------------------------------------
+df_order.drop(columns=["CustomerId"], inplace=True)
+df_order.rename(columns={"Email": "CustomerId"}, inplace=True)
+
 df_order['OrderNumber'] = pd.to_numeric(df_order['OrderNumber'], errors='coerce')
+
+
+
 merged['OrderNumber'] = pd.to_numeric(merged['OrderNumber'], errors='coerce')
 merged = merged.merge(df_order[['OrderNumber', 'CustomerId', 'PriceTotal']], on='OrderNumber', how='left')
 
@@ -192,13 +207,11 @@ merged.to_csv(f'outputs/order_history_reorder_analysis_{today_str}.csv', index=F
 merged_subset = merged.dropna(subset=['OrderNumber'])[['OrderNumber']]
 merged_subset['OrderNumber'] = pd.to_numeric(merged_subset['OrderNumber'], errors='coerce')
 
-df_order = pd.read_feather('data/raw_order_df.feather')
-df_order['OrderNumber'] = pd.to_numeric(df_order['OrderNumber'], errors='coerce')
+
 df_order_subset = df_order.merge(merged_subset, left_on='OrderNumber', right_on='OrderNumber', how='right')[
     ['OrderNumber', 'CustomerId']]
 
 df_customer = pd.read_feather('outputs/customer_order_history.feather')
-df_customer['CustomerId'] = df_customer['CustomerId'].astype('Int64')
 df_customer['LifetimeCustomerOrdersGrouped'] = df_customer['LifetimeCustomerOrdersGrouped'].fillna('0')
 df_customer['LifetimeCustomerItemsGrouped'] = df_customer['LifetimeCustomerItemsGrouped'].fillna('0')
 

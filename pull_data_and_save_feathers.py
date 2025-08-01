@@ -34,6 +34,7 @@ query_and_save("OrderItem", "raw_order_item_df")
 query_and_save("Design", "raw_design_df")
 query_and_save("Note", "raw_note_df")
 query_and_save("Feedback", "raw_feedback_df")
+query_and_save("Customer", "raw_customer_df")
 # query_and_save("ProductProductOption", "raw_product_product_option_df")
 
 # ad_campaigns = pd.read_csv("AdCampaigns.csv")
